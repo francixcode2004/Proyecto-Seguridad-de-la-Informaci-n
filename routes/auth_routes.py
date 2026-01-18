@@ -1,6 +1,7 @@
 from flask import Blueprint
 from flask_jwt_extended import jwt_required
 
+from controllers.admin_controller import login_admin, register_admin
 from controllers.laboratory_controller import create_laboratory_request
 from controllers.user_controller import login_user, logout_user, register_user
 
@@ -20,6 +21,16 @@ def login():
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
     return logout_user()
+
+
+@auth_bp.route("/register-admin", methods=["POST"])
+def register_admin_route():
+    return register_admin()
+
+
+@auth_bp.route("/login-admin", methods=["POST"])
+def login_admin_route():
+    return login_admin()
 
 
 @auth_bp.route("/laboratory", methods=["POST"])

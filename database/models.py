@@ -10,6 +10,31 @@ def mask_cedula(raw_cedula):
     return f"{cleaned[:2]}{'X' * (len(cleaned) - 3)}{cleaned[-1]}"
 
 
+class Admin(db.Model):
+    __tablename__ = "admins"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(120), nullable=False)
+    apellido = db.Column(db.String(120), nullable=False)
+    correo = db.Column(db.String(150), nullable=False, unique=True)
+    password_hash = db.Column(db.String(128), nullable=False)
+    cedula = db.Column(db.String(20), nullable=False)
+    carrera = db.Column(db.String(120), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nombre": self.nombre,
+            "apellido": self.apellido,
+            "correo": self.correo,
+            "cedula": mask_cedula(self.cedula),
+            "carrera": self.carrera,
+            "created_at": self.created_at.isoformat(),
+            "password": "********",
+        }
+
+
 class User(db.Model):
     __tablename__ = "users"
 
@@ -65,7 +90,10 @@ class LaboratoryRequest(db.Model):
     equipo = db.Column(db.String(80), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    user = db.relationship("User", backref=db.backref("laboratory_requests", lazy=True))
+    user = db.relationship(
+        "User",
+        backref=db.backref("laboratory_requests", lazy=True, cascade="all, delete-orphan"),
+    )
 
     def to_dict(self):
         return {

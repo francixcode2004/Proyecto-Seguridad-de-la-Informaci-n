@@ -1,0 +1,352 @@
+{
+  "info": {
+    "name": "Flask Auth & Lab API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección para probar los endpoints de autenticación, reservas y administración."
+  },
+  "item": [
+    {
+      "name": "Auth - Register Usuario",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"nombre\": \"Francisco\",\n    \"apellido\": \"Perez\",\n    \"correo\": \"fran@est.ups.edu.ec\",\n    \"contrasena\": \"Q12444545666\",\n    \"cedula\": \"0102345678\",\n    \"carrera\": \"Ingeniería de Sistemas\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Auth - Login Usuario",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"correo\": \"fran@est.ups.edu.ec\",\n    \"contrasena\": \"Q12444545666\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth - Logout Usuario",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/logout",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "logout"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Auth - Register Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"nombre\": \"Francisco\",\n    \"apellido\": \"Perez\",\n    \"correo\": \"fran2@est.ups.edu.ec\",\n    \"contrasena\": \"Q12444545668\",\n    \"cedula\": \"0102345678\",\n    \"carrera\": \"Ingeniería de Sistemas\",\n    \"admin\": true\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/register-admin",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "register-admin"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Auth - Login Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"correo\": \"fran2@est.ups.edu.ec\",\n    \"contrasena\": \"Q12444545668\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login-admin",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login-admin"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Auth - Laboratorio Reserva",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"correo_institucional\": \"fran@est.ups.edu.ec\",\n    \"nombres_completos\": \"Francisco Perez\",\n    \"cargo\": \"Estudiante\",\n    \"carrera\": \"Computacion\",\n    \"nivel\": \"8vo\",\n    \"discapacidad\": \"NO\",\n    \"materia_motivo\": \"Redes Avanzadas\",\n    \"numero_estudiantes\": 5,\n    \"fecha_prestamo\": \"25/1/2026\",\n    \"horario_uso\": \"08:00 - 10:00\",\n    \"descripcion_actividades\": \"Configuracion de topologias y pruebas de conectividad\",\n    \"laboratorio\": \"Laboratorio Networking 3\",\n    \"equipo\": \"Router 2800\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/laboratory",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "laboratory"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Admin - Listar Usuarios",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "users"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Admin - Actualizar Usuario",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"nombre\": \"Francisco Javier\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/users/{{user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "users",
+            "{{user_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Admin - Eliminar Usuario",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/users/{{user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "users",
+            "{{user_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Admin - Listar Reservas",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/laboratories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "laboratories"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Admin - Actualizar Reserva",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"numero_estudiantes\": 10\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/laboratories/{{reserve_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "laboratories",
+            "{{reserve_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Admin - Eliminar Reserva",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/laboratories/{{reserve_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "laboratories",
+            "{{reserve_id}}"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "user_token",
+      "value": ""
+    },
+    {
+      "key": "admin_token",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": "1"
+    },
+    {
+      "key": "reserve_id",
+      "value": "1"
+    }
+  ]
+}

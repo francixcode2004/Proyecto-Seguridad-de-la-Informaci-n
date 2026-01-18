@@ -38,9 +38,11 @@ def create_app():
     def missing_token_callback(reason):  # type: ignore[override]
         return jsonify({"message": "Token requerido", "reason": reason}), 401
 
+    from routes.admin_routes import admin_bp
     from routes.auth_routes import auth_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(admin_bp, url_prefix="/api/admin")
 
     with app.app_context():
         db.create_all()
