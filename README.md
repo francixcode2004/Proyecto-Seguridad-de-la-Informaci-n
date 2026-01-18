@@ -33,6 +33,7 @@ python main.py
 - POST `/api/auth/register`
 - POST `/api/auth/login`
 - POST `/api/auth/logout`
+- POST `/api/auth/laboratory` (requiere token válido)
 
 ### Cómo usar `/api/auth/logout`
 
@@ -46,6 +47,13 @@ python main.py
 - La contraseña debe ser alfanumérica, de 8 a 12 caracteres, con al menos una letra y un número.
 - Las contraseñas se guardan con hash Bcrypt y 10 rondas de salt, nunca en texto plano.
 - La cédula se almacena completa en base de datos pero se expone enmascarada (ej. `17XXXXXXX5`) en las respuestas JSON.
+- El préstamo de laboratorios valida cargos, carreras, niveles, laboratorios y equipos permitidos, además de formatos de fecha (`d/m/yyyy`) y horario (`HH:MM - HH:MM`).
+- Cada laboratorio admite como máximo 35 estudiantes por solicitud y se rechazan reservas simultáneas con el mismo laboratorio, fecha y horario.
+
+### Configuración adicional
+
+- Los catálogos de `cargo`, `carrera`, `nivel`, `laboratorio` y `equipo`, junto al límite de estudiantes (`MAX_ESTUDIANTES`), pueden ajustarse en controllers/laboratory_controller.py.
+- La protección contra reservas duplicadas se garantiza con la restricción única declarada en database/models.py (`uq_lab_schedule`), por lo que cualquier cambio en la estructura debe respetar esa integridad.
 
 ## Ejemplos de JSON
 
@@ -103,6 +111,52 @@ python main.py
         "carrera": "Ingeniería de Sistemas",
         "created_at": "2026-01-18T12:34:56.789123"
     }
+}
+```
+
+### Laboratory (envío)
+
+```json
+{
+    "correo_institucional": "fran@est.ups.edu.ec",
+    "nombres_completos": "Francisco Perez",
+    "cargo": "Estudiante",
+    "carrera": "Computacion",
+    "nivel": "8vo",
+    "discapacidad": "NO",
+    "materia_motivo": "Redes Avanzadas",
+    "numero_estudiantes": 5,
+    "fecha_prestamo": "25/1/2026",
+    "horario_uso": "08:00 - 10:00",
+    "descripcion_actividades": "Configuracion de topologias y pruebas de conectividad",
+    "laboratorio": "Laboratorio Networking 3",
+    "equipo": "Router 2800"
+}
+```
+
+### Laboratory (respuesta)
+
+```json
+{
+  "message": "Solicitud registrada",
+  "solicitud": {
+    "cargo": "Estudiante",
+    "carrera": "Computacion",
+    "correo_institucional": "fran@est.ups.edu.ec",
+    "created_at": "2026-01-18T23:06:47.571938",
+    "descripcion_actividades": "Configuracion de topologias y pruebas de conectividad",
+    "discapacidad": "NO",
+    "equipo": "Router 2800",
+    "fecha_prestamo": "2026-01-25",
+    "horario_uso": "08:00 - 10:00",
+    "id": 1,
+    "laboratorio": "Laboratorio Networking 3",
+    "materia_motivo": "Redes Avanzadas",
+    "nivel": "8vo",
+    "nombres_completos": "Francisco Perez",
+    "numero_estudiantes": 5,
+    "usuario_id": 1
+  }
 }
 ```
 
