@@ -120,6 +120,10 @@ Cada ruta expone validaciones específicas para garantizar integridad de datos y
 Authorization: Bearer <token>
 ```
 
+Sin cuerpo.
+
+#### Ejemplo de respuesta
+
 ```json
 {
         "message": "Sesión cerrada"
@@ -450,6 +454,8 @@ Authorization: Bearer <admin_token>
 ```
 Authorization: Bearer <admin_token>
 ```
+
+Sin cuerpo.
 
 #### Ejemplo de respuesta
 
