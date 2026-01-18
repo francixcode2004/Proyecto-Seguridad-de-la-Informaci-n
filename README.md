@@ -28,26 +28,235 @@ set JWT_SECRET_KEY="cambie-esta-clave"
 python main.py
 ```
 
-## Endpoints principales
+## Guía de endpoints
 
-- POST `/api/auth/register`
-- POST `/api/auth/login`
-- POST `/api/auth/logout`
-- POST `/api/auth/laboratory` (requiere token válido)
-- POST `/api/auth/register-admin`
-- POST `/api/auth/login-admin`
-- GET `/api/admin/users` (requiere token de administrador)
-- PATCH `/api/admin/users/{id}` (requiere token de administrador)
-- DELETE `/api/admin/users/{id}` (requiere token de administrador)
-- GET `/api/admin/laboratories` (requiere token de administrador)
-- PATCH `/api/admin/laboratories/{id}` (requiere token de administrador)
-- DELETE `/api/admin/laboratories/{id}` (requiere token de administrador)
+Cada ruta expone validaciones específicas para garantizar integridad de datos y seguridad. A continuación se detalla el objetivo, las restricciones y los ejemplos que debe consumir el equipo de Front.
 
-### Cómo usar `/api/auth/logout`
+### POST `/api/auth/register` (público)
+- **Objetivo:** registra usuarios finales (estudiantes, docentes, egresados) y devuelve sus datos enmascarando la cédula.
+- **Autenticación:** no requerida.
+- **Restricciones:**
+    - `correo` debe terminar en `@est.ups.edu.ec` o `@ups.edu.ec` y ser único.
+    - `contrasena` debe ser alfanumérica, 8-12 caracteres, mínimo una letra y un número; se guarda con Bcrypt (10 rondas).
+    - `cedula` se almacena completa pero se responde enmascarada.
+- **Respuesta:** HTTP 201 con el usuario creado; ID autogenerado y campos de auditoría (`created_at`).
 
-- Envía una petición POST sin cuerpo.
-- Agrega el encabezado `Authorization: Bearer <token>` con el token devuelto por el login.
-- Tras cerrar sesión el token queda revocado, por lo que nuevos usos devolverán `Token inválido`.
+#### Ejemplo de solicitud
+
+```json
+{
+        "nombre": "Francisco",
+        "apellido": "Perez",
+        "correo": "fran@est.ups.edu.ec",
+        "contrasena": "Q12444545666",
+        "cedula": "0102345678",
+        "carrera": "Ingeniería de Sistemas"
+}
+```
+
+#### Ejemplo de respuesta
+
+```json
+{
+        "message": "Usuario registrado",
+        "usuario": {
+                "id": 1,
+                "nombre": "Francisco",
+                "apellido": "Perez",
+                "correo": "fran@est.ups.edu.ec",
+                "cedula": "17XXXXXXX5",
+                "carrera": "Ingeniería de Sistemas",
+                "created_at": "2026-01-18T12:34:56.789123"
+        }
+}
+```
+
+### POST `/api/auth/login` (público)
+- **Objetivo:** entrega un JWT válido por 1 hora para usuarios finales.
+- **Autenticación:** credenciales válidas de usuario (`correo`, `contrasena`).
+- **Restricciones:**
+    - Requiere que la cuenta exista y la contraseña coincida con el hash almacenado.
+    - El JWT incluye `identity` (ID de usuario) y claims adicionales (`correo`, `nombre`).
+- **Respuesta:** HTTP 200 con token y datos del usuario enmascarados.
+
+#### Ejemplo de solicitud
+
+```json
+{
+        "correo": "fran@est.ups.edu.ec",
+        "contrasena": "Q12444545666"
+}
+```
+
+#### Ejemplo de respuesta
+
+```json
+{
+        "message": "Inicio de sesión exitoso",
+        "token": "jwt-token-aqui",
+        "usuario": {
+                "id": 1,
+                "nombre": "Francisco",
+                "apellido": "Perez",
+                "correo": "fran@est.ups.edu.ec",
+                "cedula": "17XXXXXXX5",
+                "carrera": "Ingeniería de Sistemas",
+                "created_at": "2026-01-18T12:34:56.789123"
+        }
+}
+```
+
+### POST `/api/auth/logout` (requiere token de usuario)
+- **Objetivo:** invalida un token JWT agregándolo a la blocklist.
+- **Autenticación:** encabezado `Authorization: Bearer <token>`.
+- **Restricciones:**
+    - No requiere cuerpo.
+    - Devuelve error 401 si el token está ausente, vencido o ya revocado.
+- **Respuesta:** HTTP 200 con mensaje de confirmación.
+
+```json
+{
+        "message": "Sesión cerrada"
+}
+```
+
+### POST `/api/auth/register-admin` (público controlado)
+- **Objetivo:** registrar cuentas administrativas con los mismos campos que los usuarios, más un `admin` obligatorio igual a `true`.
+- **Autenticación:** no requerida (usar solo en fase de aprovisionamiento).
+- **Restricciones:**
+    - Mismas validaciones de correo y contraseña que `/register`.
+    - `admin` debe ser `true`; de lo contrario se rechaza la petición.
+    - Correo debe ser único en la tabla de administradores.
+- **Respuesta:** HTTP 201 con datos del administrador (cédula enmascarada, contraseña oculta).
+
+```json
+{
+        "message": "Administrador registrado",
+        "administrador": {
+                "id": 1,
+                "nombre": "Francisco",
+                "apellido": "Perez",
+                "correo": "fran2@est.ups.edu.ec",
+                "cedula": "17XXXXXXX5",
+                "carrera": "Ingeniería de Sistemas",
+                "created_at": "2026-01-18T12:34:56.789123",
+                "password": "********",
+                "admin": true
+        }
+}
+```
+
+### POST `/api/auth/login-admin` (público)
+- **Objetivo:** autenticar administradores y emitir un JWT con la claim `is_admin=true` para controlar accesos.
+- **Autenticación:** credenciales del administrador registrado.
+- **Restricciones:**
+    - El correo debe existir en la tabla `admins`.
+    - Contraseña verificada contra hash Bcrypt.
+- **Respuesta:** HTTP 200 con token y datos básicos del administrador.
+
+```json
+{
+        "message": "Inicio de sesión administrador exitoso",
+        "token": "jwt-admin-token",
+        "administrador": {
+                "id": 1,
+                "nombre": "Administrador UPS",
+                "correo": "admin@ups.edu.ec",
+                "created_at": "2026-01-18T12:34:56.789123",
+                "password": "********"
+        }
+}
+```
+
+### POST `/api/auth/laboratory` (requiere token de usuario)
+- **Objetivo:** registrar solicitudes de préstamo para laboratorios del bloque D.
+- **Autenticación:** JWT de usuario (`Authorization: Bearer <token>`).
+- **Restricciones principales:**
+    - `correo_institucional` debe usar los dominios institucionales válidos.
+    - Campos de selección (`cargo`, `carrera`, `nivel`, `discapacidad`, `laboratorio`, `equipo`) aceptan únicamente valores configurados en `config/options.py`.
+    - `fecha_prestamo` usa formato `d/m/yyyy`; `horario_uso` debe seguir `HH:MM - HH:MM`.
+    - `numero_estudiantes` > 0 y ≤ 35.
+    - No permite reservas simultáneas para mismo laboratorio, fecha y horario (conflicto 409).
+- **Respuesta:** HTTP 201 con la reserva creada.
+
+```json
+{
+    "message": "Solicitud registrada",
+    "solicitud": {
+        "id": 1,
+        "usuario_id": 1,
+        "correo_institucional": "fran@est.ups.edu.ec",
+        "nombres_completos": "Francisco Perez",
+        "cargo": "Estudiante",
+        "carrera": "Computacion",
+        "nivel": "8vo",
+        "discapacidad": "NO",
+        "materia_motivo": "Redes Avanzadas",
+        "numero_estudiantes": 5,
+        "fecha_prestamo": "2026-01-25",
+        "horario_uso": "08:00 - 10:00",
+        "descripcion_actividades": "Configuracion de topologias y pruebas de conectividad",
+        "laboratorio": "Laboratorio Networking 3",
+        "equipo": "Router 2800",
+        "created_at": "2026-01-18T12:34:56.789123"
+    }
+}
+```
+
+### GET `/api/admin/users` (requiere token de administrador)
+- **Objetivo:** listar usuarios registrados para fines de control.
+- **Autenticación:** JWT con claim `is_admin=true`.
+- **Restricciones:** resultados muestran cédula enmascarada y contraseña como `********`.
+- **Respuesta:** HTTP 200 con conteo total y arreglo `usuarios`.
+
+```json
+{
+        "total": 1,
+        "usuarios": [
+                {
+                        "id": 1,
+                        "nombre": "Francisco",
+                        "apellido": "Perez",
+                        "correo": "fran@est.ups.edu.ec",
+                        "cedula": "17XXXXXXX5",
+                        "carrera": "Ingeniería de Sistemas",
+                        "created_at": "2026-01-18T12:34:56.789123",
+                        "password": "********"
+                }
+        ]
+}
+```
+
+### PATCH `/api/admin/users/{id}` (requiere token de administrador)
+- **Objetivo:** permitir a administradores actualizar datos del usuario y rotar contraseñas.
+- **Autenticación:** JWT administrativo.
+- **Restricciones:**
+    - Campos opcionales (`nombre`, `apellido`, `correo`, `cedula`, `carrera`, `contrasena`).
+    - Validaciones de correo y contraseña idénticas a las de registro.
+- **Respuesta:** HTTP 200 con el usuario actualizado (cédula enmascarada, contraseña oculta).
+
+### DELETE `/api/admin/users/{id}` (requiere token de administrador)
+- **Objetivo:** eliminar usuarios y cascada sus reservas asociadas.
+- **Autenticación:** JWT administrativo.
+- **Restricciones:** responde 404 si el usuario no existe.
+- **Respuesta:** HTTP 200 con mensaje de confirmación.
+
+### GET `/api/admin/laboratories` (requiere token de administrador)
+- **Objetivo:** listar solicitudes de laboratorio con filtros ya aplicados (cédulas enmascaradas a través del usuario relacionado).
+- **Autenticación:** JWT administrativo.
+- **Respuesta:** HTTP 200 con arreglo `reservas` y metadatos.
+
+### PATCH `/api/admin/laboratories/{id}` (requiere token de administrador)
+- **Objetivo:** editar datos de una reserva (horario, número de estudiantes, etc.).
+- **Autenticación:** JWT administrativo.
+- **Restricciones:**
+    - Validaciones análogas al endpoint de creación (catálogos, formatos de fecha/horario, límite de estudiantes, conflictos de horario).
+- **Respuesta:** HTTP 200 con la reserva actualizada.
+
+### DELETE `/api/admin/laboratories/{id}` (requiere token de administrador)
+- **Objetivo:** eliminar la reserva seleccionada.
+- **Autenticación:** JWT administrativo.
+- **Respuesta:** HTTP 200 con mensaje de confirmación.
 
 ## Reglas de validación y seguridad
 
@@ -66,248 +275,3 @@ python main.py
 - La tabla de administradores se define en database/models.py (`Admin`). Puedes crear administradores iniciales ejecutando un script que inserte el registro con contraseña hasheada mediante Bcrypt.
 - Las reglas de edición y eliminación de usuarios y reservas se implementan en controllers/admin_controller.py.
 
-## Ejemplos de JSON
-
-### Registro `/api/auth/register` (envío)
-
-```json
-{
-    "nombre": "Francisco",
-    "apellido": "Perez",
-    "correo": "fran@est.ups.edu.ec",
-    "contrasena": "Q12444545666",
-    "cedula": "0102345678",
-    "carrera": "Ingeniería de Sistemas"
-}
-```
-
-### Registro `/api/auth/register` (respuesta)
-
-```json
-{
-    "message": "Usuario registrado",
-    "usuario": {
-        "id": 1,
-        "nombre": "Francisco",
-        "apellido": "Perez",
-        "correo": "fran@est.ups.edu.ec",
-        "cedula": "17XXXXXXX5",
-        "carrera": "Ingeniería de Sistemas",
-        "created_at": "2026-01-18T12:34:56.789123"
-    }
-}
-```
-
-### Login `/api/auth/login` (envío)
-
-```json
-{
-    "correo": "fran@est.ups.edu.ec",
-    "contrasena": "Q12444545666"
-}
-```
-
-### Login `/api/auth/login` (respuesta)
-
-### Registro administrador `/api/auth/register-admin` (envío)
-
-```json
-{
-    "nombre": "Francisco",
-    "apellido": "Perez",
-    "correo": "fran2@est.ups.edu.ec",
-    "contrasena": "Q12444545668",
-    "cedula": "0102345678",
-    "carrera": "Ingeniería de Sistemas",
-    "admin": true
-}
-```
-
-### Registro administrador `/api/auth/register-admin` (respuesta)
-
-```json
-{
-    "message": "Administrador registrado",
-    "administrador": {
-        "id": 1,
-        "nombre": "Francisco",
-        "apellido": "Perez",
-        "correo": "fran2@est.ups.edu.ec",
-        "cedula": "17XXXXXXX5",
-        "carrera": "Ingeniería de Sistemas",
-        "created_at": "2026-01-18T12:34:56.789123",
-        "password": "********",
-        "admin": true
-    }
-}
-```
-
-```json
-{
-    "message": "Inicio de sesión exitoso",
-    "token": "jwt-token-aqui",
-    "usuario": {
-        "id": 1,
-        "nombre": "Francisco",
-        "apellido": "Perez",
-        "correo": "fran@est.ups.edu.ec",
-        "cedula": "17XXXXXXX5",
-        "carrera": "Ingeniería de Sistemas",
-        "created_at": "2026-01-18T12:34:56.789123"
-    }
-}
-```
-
-### Login administrador `/api/auth/login-admin` (envío)
-
-```json
-{
-    "correo": "admin@ups.edu.ec",
-    "contrasena": "Admin1234"
-}
-```
-
-### Login administrador `/api/auth/login-admin` (respuesta)
-
-```json
-{
-    "message": "Inicio de sesión administrador exitoso",
-    "token": "jwt-admin-token",
-    "administrador": {
-        "id": 1,
-        "nombre": "Administrador UPS",
-        "correo": "admin@ups.edu.ec",
-        "created_at": "2026-01-18T12:34:56.789123",
-        "password": "********"
-    }
-}
-```
-
-### Laboratorio `/api/auth/laboratory` (envío)
-
-```json
-{
-    "correo_institucional": "fran@est.ups.edu.ec",
-    "nombres_completos": "Francisco Perez",
-    "cargo": "Estudiante",
-    "carrera": "Computacion",
-    "nivel": "8vo",
-    "discapacidad": "NO",
-    "materia_motivo": "Redes Avanzadas",
-    "numero_estudiantes": 5,
-    "fecha_prestamo": "25/1/2026",
-    "horario_uso": "08:00 - 10:00",
-    "descripcion_actividades": "Configuracion de topologias y pruebas de conectividad",
-    "laboratorio": "Laboratorio Networking 3",
-    "equipo": "Router 2800"
-}
-```
-
-### Laboratorio `/api/auth/laboratory` (respuesta)
-
-```json
-{
-  "message": "Solicitud registrada",
-  "solicitud": {
-    "cargo": "Estudiante",
-    "carrera": "Computacion",
-    "correo_institucional": "fran@est.ups.edu.ec",
-    "created_at": "2026-01-18T23:06:47.571938",
-    "descripcion_actividades": "Configuracion de topologias y pruebas de conectividad",
-    "discapacidad": "NO",
-    "equipo": "Router 2800",
-    "fecha_prestamo": "2026-01-25",
-    "horario_uso": "08:00 - 10:00",
-    "id": 1,
-    "laboratorio": "Laboratorio Networking 3",
-    "materia_motivo": "Redes Avanzadas",
-    "nivel": "8vo",
-    "nombres_completos": "Francisco Perez",
-    "numero_estudiantes": 5,
-    "usuario_id": 1
-  }
-}
-```
-
-### Admin - usuarios GET `/api/admin/users` (respuesta)
-
-```json
-{
-    "total": 1,
-    "usuarios": [
-        {
-            "id": 1,
-            "nombre": "Francisco",
-            "apellido": "Perez",
-            "correo": "fran@est.ups.edu.ec",
-            "cedula": "17XXXXXXX5",
-            "carrera": "Ingeniería de Sistemas",
-            "created_at": "2026-01-18T12:34:56.789123",
-            "password": "********"
-        }
-    ]
-}
-```
-
-### Admin - actualización usuario PATCH `/api/admin/users/{id}` (envío)
-
-```json
-{
-    "nombre": "Francisco Javier",
-    "contrasena": "NuevoPass12"
-}
-```
-
-### Admin - actualización usuario PATCH `/api/admin/users/{id}` (respuesta)
-
-```json
-{
-    "message": "Usuario actualizado",
-    "usuario": {
-        "id": 1,
-        "nombre": "Francisco Javier",
-        "apellido": "Perez",
-        "correo": "fran@est.ups.edu.ec",
-        "cedula": "17XXXXXXX5",
-        "carrera": "Ingeniería de Sistemas",
-        "created_at": "2026-01-18T12:34:56.789123",
-        "password": "********"
-    }
-}
-```
-
-### Admin - reservas GET `/api/admin/laboratories` (respuesta)
-
-```json
-{
-    "total": 1,
-    "reservas": [
-        {
-            "id": 1,
-            "usuario_id": 1,
-            "correo_institucional": "fran@est.ups.edu.ec",
-            "nombres_completos": "Francisco Perez",
-            "cargo": "Estudiante",
-            "carrera": "Computacion",
-            "nivel": "8vo",
-            "discapacidad": "NO",
-            "materia_motivo": "Redes Avanzadas",
-            "numero_estudiantes": 5,
-            "fecha_prestamo": "2026-01-25",
-            "horario_uso": "08:00 - 10:00",
-            "descripcion_actividades": "Configuracion de topologias y pruebas de conectividad",
-            "laboratorio": "Laboratorio Networking 3",
-            "equipo": "Router 2800",
-            "created_at": "2026-01-18T12:34:56.789123"
-        }
-    ]
-}
-```
-
-### Logout `/api/auth/logout` (respuesta)
-
-```json
-{
-    "message": "Sesión cerrada"
-}
-```
