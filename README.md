@@ -114,6 +114,12 @@ Cada ruta expone validaciones específicas para garantizar integridad de datos y
     - Devuelve error 401 si el token está ausente, vencido o ya revocado.
 - **Respuesta:** HTTP 200 con mensaje de confirmación.
 
+#### Ejemplo de solicitud
+
+```
+Authorization: Bearer <token>
+```
+
 ```json
 {
         "message": "Sesión cerrada"
@@ -128,6 +134,22 @@ Cada ruta expone validaciones específicas para garantizar integridad de datos y
     - `admin` debe ser `true`; de lo contrario se rechaza la petición.
     - Correo debe ser único en la tabla de administradores.
 - **Respuesta:** HTTP 201 con datos del administrador (cédula enmascarada, contraseña oculta).
+
+#### Ejemplo de solicitud
+
+```json
+{
+        "nombre": "Francisco",
+        "apellido": "Perez",
+        "correo": "fran2@est.ups.edu.ec",
+        "contrasena": "Q12444545668",
+        "cedula": "0102345678",
+        "carrera": "Ingeniería de Sistemas",
+        "admin": true
+}
+```
+
+#### Ejemplo de respuesta
 
 ```json
 {
@@ -154,6 +176,17 @@ Cada ruta expone validaciones específicas para garantizar integridad de datos y
     - Contraseña verificada contra hash Bcrypt.
 - **Respuesta:** HTTP 200 con token y datos básicos del administrador.
 
+#### Ejemplo de solicitud
+
+```json
+{
+        "correo": "admin@ups.edu.ec",
+        "contrasena": "Admin1234"
+}
+```
+
+#### Ejemplo de respuesta
+
 ```json
 {
         "message": "Inicio de sesión administrador exitoso",
@@ -178,6 +211,28 @@ Cada ruta expone validaciones específicas para garantizar integridad de datos y
     - `numero_estudiantes` > 0 y ≤ 35.
     - No permite reservas simultáneas para mismo laboratorio, fecha y horario (conflicto 409).
 - **Respuesta:** HTTP 201 con la reserva creada.
+
+#### Ejemplo de solicitud
+
+```json
+{
+        "correo_institucional": "fran@est.ups.edu.ec",
+        "nombres_completos": "Francisco Perez",
+        "cargo": "Estudiante",
+        "carrera": "Computacion",
+        "nivel": "8vo",
+        "discapacidad": "NO",
+        "materia_motivo": "Redes Avanzadas",
+        "numero_estudiantes": 5,
+        "fecha_prestamo": "25/1/2026",
+        "horario_uso": "08:00 - 10:00",
+        "descripcion_actividades": "Configuracion de topologias y pruebas de conectividad",
+        "laboratorio": "Laboratorio Networking 3",
+        "equipo": "Router 2800"
+}
+```
+
+#### Ejemplo de respuesta
 
 ```json
 {
@@ -209,6 +264,16 @@ Cada ruta expone validaciones específicas para garantizar integridad de datos y
 - **Restricciones:** resultados muestran cédula enmascarada y contraseña como `********`.
 - **Respuesta:** HTTP 200 con conteo total y arreglo `usuarios`.
 
+#### Ejemplo de solicitud
+
+```
+Authorization: Bearer <admin_token>
+```
+
+Sin cuerpo.
+
+#### Ejemplo de respuesta
+
 ```json
 {
         "total": 1,
@@ -235,16 +300,99 @@ Cada ruta expone validaciones específicas para garantizar integridad de datos y
     - Validaciones de correo y contraseña idénticas a las de registro.
 - **Respuesta:** HTTP 200 con el usuario actualizado (cédula enmascarada, contraseña oculta).
 
+#### Ejemplo de solicitud
+
+```
+Authorization: Bearer <admin_token>
+```
+
+```json
+{
+        "nombre": "Francisco Javier",
+        "contrasena": "NuevoPass12"
+}
+```
+
+#### Ejemplo de respuesta
+
+```json
+{
+        "message": "Usuario actualizado",
+        "usuario": {
+                "id": 1,
+                "nombre": "Francisco Javier",
+                "apellido": "Perez",
+                "correo": "fran@est.ups.edu.ec",
+                "cedula": "17XXXXXXX5",
+                "carrera": "Ingeniería de Sistemas",
+                "created_at": "2026-01-18T12:34:56.789123",
+                "password": "********"
+        }
+}
+```
+
 ### DELETE `/api/admin/users/{id}` (requiere token de administrador)
 - **Objetivo:** eliminar usuarios y cascada sus reservas asociadas.
 - **Autenticación:** JWT administrativo.
 - **Restricciones:** responde 404 si el usuario no existe.
 - **Respuesta:** HTTP 200 con mensaje de confirmación.
 
+#### Ejemplo de solicitud
+
+```
+Authorization: Bearer <admin_token>
+```
+
+Sin cuerpo.
+
+#### Ejemplo de respuesta
+
+```json
+{
+        "message": "Usuario eliminado"
+}
+```
+
 ### GET `/api/admin/laboratories` (requiere token de administrador)
 - **Objetivo:** listar solicitudes de laboratorio con filtros ya aplicados (cédulas enmascaradas a través del usuario relacionado).
 - **Autenticación:** JWT administrativo.
 - **Respuesta:** HTTP 200 con arreglo `reservas` y metadatos.
+
+#### Ejemplo de solicitud
+
+```
+Authorization: Bearer <admin_token>
+```
+
+Sin cuerpo.
+
+#### Ejemplo de respuesta
+
+```json
+{
+        "total": 1,
+        "reservas": [
+                {
+                        "id": 1,
+                        "usuario_id": 1,
+                        "correo_institucional": "fran@est.ups.edu.ec",
+                        "nombres_completos": "Francisco Perez",
+                        "cargo": "Estudiante",
+                        "carrera": "Computacion",
+                        "nivel": "8vo",
+                        "discapacidad": "NO",
+                        "materia_motivo": "Redes Avanzadas",
+                        "numero_estudiantes": 5,
+                        "fecha_prestamo": "2026-01-25",
+                        "horario_uso": "08:00 - 10:00",
+                        "descripcion_actividades": "Configuracion de topologias y pruebas de conectividad",
+                        "laboratorio": "Laboratorio Networking 3",
+                        "equipo": "Router 2800",
+                        "created_at": "2026-01-18T12:34:56.789123"
+                }
+        ]
+}
+```
 
 ### PATCH `/api/admin/laboratories/{id}` (requiere token de administrador)
 - **Objetivo:** editar datos de una reserva (horario, número de estudiantes, etc.).
@@ -253,10 +401,63 @@ Cada ruta expone validaciones específicas para garantizar integridad de datos y
     - Validaciones análogas al endpoint de creación (catálogos, formatos de fecha/horario, límite de estudiantes, conflictos de horario).
 - **Respuesta:** HTTP 200 con la reserva actualizada.
 
+#### Ejemplo de solicitud
+
+```
+Authorization: Bearer <admin_token>
+```
+
+```json
+{
+        "numero_estudiantes": 10,
+        "horario_uso": "10:00 - 12:00"
+}
+```
+
+#### Ejemplo de respuesta
+
+```json
+{
+        "message": "Reserva actualizada",
+        "reserva": {
+                "id": 1,
+                "usuario_id": 1,
+                "correo_institucional": "fran@est.ups.edu.ec",
+                "nombres_completos": "Francisco Perez",
+                "cargo": "Estudiante",
+                "carrera": "Computacion",
+                "nivel": "8vo",
+                "discapacidad": "NO",
+                "materia_motivo": "Redes Avanzadas",
+                "numero_estudiantes": 10,
+                "fecha_prestamo": "2026-01-25",
+                "horario_uso": "10:00 - 12:00",
+                "descripcion_actividades": "Configuracion de topologias y pruebas de conectividad",
+                "laboratorio": "Laboratorio Networking 3",
+                "equipo": "Router 2800",
+                "created_at": "2026-01-18T12:34:56.789123"
+        }
+}
+```
+
 ### DELETE `/api/admin/laboratories/{id}` (requiere token de administrador)
 - **Objetivo:** eliminar la reserva seleccionada.
 - **Autenticación:** JWT administrativo.
 - **Respuesta:** HTTP 200 con mensaje de confirmación.
+
+#### Ejemplo de solicitud
+
+```
+Authorization: Bearer <admin_token>
+```
+
+#### Ejemplo de respuesta
+
+```json
+{
+        "message": "Reserva eliminada"
+}
+```
 
 ## Reglas de validación y seguridad
 
