@@ -184,8 +184,8 @@ Sin cuerpo.
 
 ```json
 {
-        "correo": "admin@ups.edu.ec",
-        "contrasena": "Admin1234"
+        "correo": "fran2@est.ups.edu.ec",
+        "contrasena": "Q12444545668"
 }
 ```
 
@@ -197,8 +197,8 @@ Sin cuerpo.
         "token": "jwt-admin-token",
         "administrador": {
                 "id": 1,
-                "nombre": "Administrador UPS",
-                "correo": "admin@ups.edu.ec",
+                "nombre": "Francisco",
+                "correo": "fran2@est.ups.edu.ec",
                 "created_at": "2026-01-18T12:34:56.789123",
                 "password": "********"
         }
