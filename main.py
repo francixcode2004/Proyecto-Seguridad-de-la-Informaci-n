@@ -2,20 +2,12 @@ import os
 from datetime import timedelta
 
 from flask import Flask, jsonify
-from flask_cors import CORS  # IMPORTANTE
 
 from database import db, bcrypt, jwt
 
 
 def create_app():
     app = Flask(__name__)
-
-    # CORS (AQUÍ, antes de blueprints)
-    CORS(
-        app,
-        resources={r"/api/*": {"origins": "http://localhost:5173"}},
-        supports_credentials=True
-    )
 
     base_dir = os.path.abspath(os.path.dirname(__file__))
     db_path = os.path.join(base_dir, "database", "app.db")
@@ -30,20 +22,20 @@ def create_app():
     bcrypt.init_app(app)
     jwt.init_app(app)
 
-    from database.models import RevokedToken
+    from database.models import RevokedToken  # noqa: WPS433
 
     @jwt.token_in_blocklist_loader
-    def check_if_token_revoked(jwt_header, jwt_payload):
+    def check_if_token_revoked(jwt_header, jwt_payload):  # pylint: disable=unused-argument
         jti = jwt_payload.get("jti")
         token = RevokedToken.query.filter_by(jti=jti).first()
         return token is not None
 
     @jwt.invalid_token_loader
-    def invalid_token_callback(reason):
+    def invalid_token_callback(reason):  # type: ignore[override]
         return jsonify({"message": "Token inválido", "reason": reason}), 401
 
     @jwt.unauthorized_loader
-    def missing_token_callback(reason):
+    def missing_token_callback(reason):  # type: ignore[override]
         return jsonify({"message": "Token requerido", "reason": reason}), 401
 
     from routes.admin_routes import admin_bp
