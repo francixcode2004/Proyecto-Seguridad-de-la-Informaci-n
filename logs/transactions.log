@@ -84,3 +84,13 @@
 2026-01-25 18:43:32 | method=POST | path=/api/auth/logout | status=200 | identity=admin:1 | ip=127.0.0.1 | endpoint=auth.logout
 2026-01-25 18:43:45 | method=OPTIONS | path=/api/auth/login | status=200 | identity=anonymous | ip=127.0.0.1 | endpoint=auth.login
 2026-01-25 18:43:46 | method=POST | path=/api/auth/login | status=200 | identity=anonymous | ip=127.0.0.1 | endpoint=auth.login
+2026-01-25 18:48:05 | method=OPTIONS | path=/api/auth/laboratory/reservations | status=200 | identity=anonymous | ip=127.0.0.1 | endpoint=auth.laboratory_reservations
+2026-01-25 18:48:05 | method=GET | path=/api/auth/laboratory/reservations | status=200 | identity=1 | ip=127.0.0.1 | endpoint=auth.laboratory_reservations
+2026-01-25 18:50:46 | method=OPTIONS | path=/api/auth/laboratory | status=200 | identity=anonymous | ip=127.0.0.1 | endpoint=auth.laboratory_request
+2026-01-25 18:50:46 | method=POST | path=/api/auth/laboratory | status=201 | identity=1 | ip=127.0.0.1 | endpoint=auth.laboratory_request
+2026-01-25 18:50:56 | method=OPTIONS | path=/api/auth/laboratory/reservations | status=200 | identity=anonymous | ip=127.0.0.1 | endpoint=auth.laboratory_reservations
+2026-01-25 18:50:56 | method=OPTIONS | path=/api/auth/laboratory/reservations | status=200 | identity=anonymous | ip=127.0.0.1 | endpoint=auth.laboratory_reservations
+2026-01-25 18:50:56 | method=GET | path=/api/auth/laboratory/reservations | status=200 | identity=1 | ip=127.0.0.1 | endpoint=auth.laboratory_reservations
+2026-01-25 18:50:56 | method=GET | path=/api/auth/laboratory/reservations | status=200 | identity=1 | ip=127.0.0.1 | endpoint=auth.laboratory_reservations
+2026-01-25 18:51:31 | method=OPTIONS | path=/api/auth/laboratory | status=200 | identity=anonymous | ip=127.0.0.1 | endpoint=auth.laboratory_request
+2026-01-25 18:51:31 | method=POST | path=/api/auth/laboratory | status=409 | identity=1 | ip=127.0.0.1 | endpoint=auth.laboratory_request
