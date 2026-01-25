@@ -28,6 +28,10 @@ export default function MainNavbar() {
             <Link className="btn btn-outline-light me-2" to="/admin/laboratories">
               Laboratorios
             </Link>
+            <Link className="btn btn-outline-light me-2" to="/admin/register-admin">
+              Registrar admin
+            </Link>
+            
             <button className="btn btn-light" onClick={logout}>
               Cerrar sesión
             </button>

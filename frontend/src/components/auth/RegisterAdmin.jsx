@@ -16,7 +16,7 @@ export default function RegisterAdmin() {
     await registerAdmin({ ...form, admin: true });
 
     alert("Administrador registrado exitosamente");
-    navigate("/login-admin");
+    navigate("/admin/users");
   };
 
   return (
@@ -39,9 +39,9 @@ export default function RegisterAdmin() {
 
         <button
           className="btn btn-secondary w-100"
-          onClick={() => navigate("/login-admin")}
+          onClick={() => navigate("/admin/users")}
         >
-          Regresar al Login
+          Regresar al panel
         </button>
       </div>
     </div>

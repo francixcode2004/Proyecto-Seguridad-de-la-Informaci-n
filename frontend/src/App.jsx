@@ -21,7 +21,6 @@ export default function App() {
       <Route path="/login" element={<LoginUser />} />
       <Route path="/login-admin" element={<LoginAdmin />} />
       <Route path="/register" element={<RegisterUser />} />
-      <Route path="/register-admin" element={<RegisterAdmin />} />
 
       {/* 👤 USUARIO */}
       <Route
@@ -39,6 +38,15 @@ export default function App() {
         element={
           <ProtectedRoute adminOnly>
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/register-admin"
+        element={
+          <ProtectedRoute adminOnly>
+            <RegisterAdmin />
           </ProtectedRoute>
         }
       />

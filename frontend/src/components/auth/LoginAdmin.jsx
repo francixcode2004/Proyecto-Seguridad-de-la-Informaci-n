@@ -48,18 +48,6 @@ export default function LoginAdmin() {
           <button className="btn btn-primary w-100 mb-2">Ingresar</button>
         </form>
 
-        <div className="text-center mb-2">
-          <span className="text-muted">¿No tienes cuenta? </span>
-          {/* ❌ Antes cambiábamos estado showRegister */}
-          {/* ✅ Ahora navegamos a la ruta real */}
-          <button
-            className="btn btn-link p-0"
-            onClick={() => navigate("/register-admin")}
-          >
-            Registrarse
-          </button>
-        </div>
-
         <div className="text-center mt-2">
           <button
             className="btn btn-secondary w-100"
