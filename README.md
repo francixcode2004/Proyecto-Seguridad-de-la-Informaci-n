@@ -23,7 +23,7 @@
 ```bash
 python -m venv venv
 venv\Scripts\activate
-pip install Flask Flask-SQLAlchemy Flask-Bcrypt Flask-JWT-Extended
+pip install Flask Flask-SQLAlchemy Flask-Bcrypt Flask-JWT-Extended log4python
 set JWT_SECRET_KEY="cambie-esta-clave"
 python main.py
 ```
@@ -259,6 +259,39 @@ Sin cuerpo.
         "equipo": "Router 2800",
         "created_at": "2026-01-18T12:34:56.789123"
     }
+}
+```
+
+### GET `/api/auth/laboratory/reservations` (requiere token de usuario)
+- **Objetivo:** listar todas las reservas existentes para que los usuarios eviten conflictos de laboratorio u horario.
+- **Autenticación:** JWT de usuario (`Authorization: Bearer <token>`).
+- **Respuesta:** HTTP 200 con arreglo `reservas`; cada elemento expone nombre de laboratorio, fecha y horario reservado.
+
+#### Ejemplo de solicitud
+
+```
+Authorization: Bearer <token>
+```
+
+Sin cuerpo.
+
+#### Ejemplo de respuesta
+
+```json
+{
+        "total": 2,
+        "reservas": [
+                {
+                        "laboratorio": "Laboratorio Networking 3",
+                        "fecha_prestamo": "25/1/2026",
+                        "horario_uso": "08:00 - 10:00"
+                },
+                {
+                        "laboratorio": "Laboratorio Software 2",
+                        "fecha_prestamo": "26/1/2026",
+                        "horario_uso": "10:00 - 12:00"
+                }
+        ]
 }
 ```
 

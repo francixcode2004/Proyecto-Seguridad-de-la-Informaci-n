@@ -162,3 +162,33 @@ def create_laboratory_request():
         }), 409
 
     return jsonify({"message": "Solicitud registrada", "solicitud": request_record.to_dict()}), 201
+
+
+def list_reserved_laboratories_for_user():
+    identity = get_jwt_identity()
+    try:
+        user_id = int(identity)
+    except (TypeError, ValueError):
+        return jsonify({"message": "Acceso permitido solo para usuarios"}), 403
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+
+    reservations = (
+        LaboratoryRequest.query.order_by(
+            LaboratoryRequest.fecha_prestamo.asc(),
+            LaboratoryRequest.horario_uso.asc(),
+        ).all()
+    )
+
+    payload = []
+    for reservation in reservations:
+        fecha = reservation.fecha_prestamo.strftime(DATE_FORMAT) if reservation.fecha_prestamo else None
+        payload.append({
+            "laboratorio": reservation.laboratorio,
+            "fecha_prestamo": fecha,
+            "horario_uso": reservation.horario_uso,
+        })
+
+    return jsonify({"reservas": payload, "total": len(payload)}), 200

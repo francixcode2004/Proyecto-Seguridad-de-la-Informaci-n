@@ -169,6 +169,30 @@
       }
     },
     {
+      "name": "Auth - Listar Reservas",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/laboratory/reservations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "laboratory",
+            "reservations"
+          ]
+        }
+      }
+    },
+    {
       "name": "Admin - Listar Usuarios",
       "request": {
         "method": "GET",

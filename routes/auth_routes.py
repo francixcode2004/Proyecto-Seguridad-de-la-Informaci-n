@@ -2,7 +2,7 @@ from flask import Blueprint
 from flask_jwt_extended import jwt_required
 
 from controllers.admin_controller import login_admin, register_admin
-from controllers.laboratory_controller import create_laboratory_request
+from controllers.laboratory_controller import create_laboratory_request, list_reserved_laboratories_for_user
 from controllers.user_controller import login_user, logout_user, register_user
 
 auth_bp = Blueprint("auth", __name__)
@@ -37,3 +37,9 @@ def login_admin_route():
 @jwt_required()
 def laboratory_request():
     return create_laboratory_request()
+
+
+@auth_bp.route("/laboratory/reservations", methods=["GET"])
+@jwt_required()
+def laboratory_reservations():
+    return list_reserved_laboratories_for_user()

@@ -1,10 +1,12 @@
 import os
 from datetime import timedelta
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS  # IMPORTANTE
+from flask_jwt_extended import get_jwt_identity
 
 from database import db, bcrypt, jwt
+from config.logger import log_endpoint_transaction
 
 
 def create_app():
@@ -51,6 +53,27 @@ def create_app():
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
+
+    @app.after_request
+    def register_transaction(response):
+        if request.path.startswith("/api/"):
+            identity = None
+            try:
+                identity_value = get_jwt_identity()
+                if identity_value:
+                    identity = str(identity_value)
+            except Exception:
+                identity = None
+
+            log_endpoint_transaction(
+                method=request.method,
+                path=request.path,
+                status_code=response.status_code,
+                identity=identity,
+                remote_addr=request.remote_addr,
+                endpoint=request.endpoint,
+            )
+        return response
 
     with app.app_context():
         db.create_all()
