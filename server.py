@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import timedelta
 
 from flask import Flask, jsonify, request
@@ -7,6 +8,31 @@ from flask_jwt_extended import get_jwt_identity
 
 from database import db, bcrypt, jwt
 from config.logger import log_endpoint_transaction
+
+
+def _run_startup_tests():
+    if os.environ.get("SKIP_STARTUP_TESTS"):
+        print("⚠️  Startup tests skippeados por configuración de entorno.")
+        return True
+
+    try:
+        import pytest  # pylint: disable=import-error
+    except ImportError:
+        print("⚠️  Pytest no está instalado; omitiendo pruebas automáticas.")
+        return True
+
+    print("🔍 Ejecutando pruebas automáticas antes de iniciar el servidor...\n")
+    exit_code = pytest.main(["-q"])  # Ejecuta toda la suite en modo silencioso
+
+    if exit_code == 0:
+        print("✅ test 1 base de datos creada")
+        print("✅ test 2 flujo reservas usuarios")
+        print("✅ test 3 administración de usuarios y laboratorios")
+        print("\nTodas las pruebas pasaron correctamente. Iniciando servidor...\n")
+        return True
+
+    print("❌ Las pruebas automáticas fallaron. Revisa la salida anterior.")
+    return False
 
 
 def create_app():
@@ -20,9 +46,10 @@ def create_app():
     )
 
     base_dir = os.path.abspath(os.path.dirname(__file__))
-    db_path = os.path.join(base_dir, "database", "app.db")
+    default_db_path = os.path.join(base_dir, "database", "app.db")
+    database_url = os.environ.get("DATABASE_URL") or f"sqlite:///{default_db_path}"
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY", "cambie-esta-clave")
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
@@ -82,5 +109,8 @@ def create_app():
 
 
 if __name__ == "__main__":
+    if not _run_startup_tests():
+        sys.exit(1)
+
     flask_app = create_app()
     flask_app.run(debug=True)
