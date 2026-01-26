@@ -23,7 +23,7 @@
 ```bash
 python -m venv venv
 venv\Scripts\activate
-pip install Flask Flask-SQLAlchemy Flask-Bcrypt Flask-JWT-Extended log4python pytest
+pip install Flask Flask-SQLAlchemy Flask-Bcrypt Flask-JWT-Extended log4python pytest flask_cors
 set JWT_SECRET_KEY="cambie-esta-clave"
 python main.py
 ```
